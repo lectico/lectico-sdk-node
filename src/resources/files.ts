@@ -20,6 +20,21 @@ export class FilesResource {
     return r.data;
   }
 
+  /**
+   * Confirm that the binary upload completed (status: pending → uploaded).
+   * Optional but recommended — flips the row so {@link get} can return a
+   * presigned download URL and the file is usable as `type:"file_id"`
+   * source for {@link KnowledgeResource.create}.
+   */
+  async confirm(fileId: string, opts?: RequestOptions): Promise<{ id: string; status: string; uploaded_at: string }> {
+    const r = await this.client.request<ApiResponse<{ id: string; status: string; uploaded_at: string }>>(
+      "POST",
+      `/v1/files/${encodeURIComponent(fileId)}/confirm`,
+      opts,
+    );
+    return r.data;
+  }
+
   async get(fileId: string, opts?: RequestOptions): Promise<FileMetadata> {
     const r = await this.client.request<ApiResponse<FileMetadata>>(
       "GET",

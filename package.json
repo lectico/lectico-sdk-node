@@ -1,6 +1,6 @@
 {
   "name": "@lectico/api",
-  "version": "0.1.0",
+  "version": "0.2.0-beta",
   "description": "Official Node.js SDK for the Lectico API — create AI assistants trained on your content, manage conversations, capture leads, receive webhooks.",
   "type": "module",
   "main": "./dist/index.js",

@@ -1,4 +1,4 @@
-// REQ-083 — @lectico/api SDK entry point
+// REQ-083 / REQ-092 — @lectico/api SDK entry point
 
 import { HttpClient, type LecticoOptions } from "./client.js";
 import { AgentsResource } from "./resources/agents.js";
@@ -8,6 +8,9 @@ import { LeadsResource } from "./resources/leads.js";
 import { WebhooksResource } from "./resources/webhooks.js";
 import { FilesResource } from "./resources/files.js";
 import { UsageResource } from "./resources/usage.js";
+import { QAResource } from "./resources/qa.js";
+import { TrainingResource } from "./resources/training.js";
+import { GlossaryResource } from "./resources/glossary.js";
 
 export default class Lectico {
   readonly agents: AgentsResource;
@@ -17,6 +20,12 @@ export default class Lectico {
   readonly webhooks: WebhooksResource;
   readonly files: FilesResource;
   readonly usage: UsageResource;
+  /** REQ-092.4 — Q&A pairs and categories for soporte/sales agents. */
+  readonly qa: QAResource;
+  /** REQ-092.5 — Modules, lessons and lesson sources for training agents. */
+  readonly training: TrainingResource;
+  /** REQ-092.6 — Per-agent transcription glossary. */
+  readonly glossary: GlossaryResource;
 
   private readonly client: HttpClient;
 
@@ -29,6 +38,9 @@ export default class Lectico {
     this.webhooks = new WebhooksResource(this.client);
     this.files = new FilesResource(this.client);
     this.usage = new UsageResource(this.client);
+    this.qa = new QAResource(this.client);
+    this.training = new TrainingResource(this.client);
+    this.glossary = new GlossaryResource(this.client);
   }
 }
 

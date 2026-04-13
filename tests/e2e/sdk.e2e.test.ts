@@ -147,6 +147,75 @@ describe("@lectico/api E2E (real Cloud Run)", () => {
     );
   });
 
+  // -------------------------------------------------------------------
+  // REQ-092 — new resources (qa, training, glossary)
+  // -------------------------------------------------------------------
+
+  test("knowledge.create with type:csv_qa returns processing", async () => {
+    const agent = await lectico.agents.create({ type: "support", name: `CSV QA ${RUN_SUFFIX}` });
+    const src = await lectico.knowledge.create(agent.id, {
+      type: "csv_qa",
+      name: "FAQ",
+      content: "question,answer,category\nHow much?,5 EUR,Pricing\nWhen open?,9-18,Hours",
+    });
+    assert.equal(src.type, "csv_qa");
+    assert.equal(src.status, "processing");
+  });
+
+  test("qa.list returns shape with category subobject", async () => {
+    const list = await lectico.agents.list({ limit: 50 });
+    const csvAgent = list.data.find(a => a.name?.startsWith("CSV QA"));
+    if (!csvAgent) return;
+    const qa = await lectico.qa.list(csvAgent.id, { limit: 10 });
+    assert.ok(Array.isArray(qa.data));
+    if (qa.data.length > 0) {
+      assert.ok(qa.data[0].category, "category present");
+      assert.equal(typeof qa.data[0].question, "string");
+    }
+  });
+
+  test("glossary.put + addTerm + removeTerm + patch", async () => {
+    const agent = await lectico.agents.create({ type: "support", name: `Glos ${RUN_SUFFIX}` });
+    let g = await lectico.glossary.put(agent.id, { terms: ["Acme", "Lectico"] });
+    assert.equal(g.terms.length, 2);
+    g = await lectico.glossary.addTerm(agent.id, "Browserless");
+    assert.equal(g.terms.length, 3);
+    g = await lectico.glossary.removeTerm(agent.id, "Lectico");
+    assert.equal(g.terms.length, 2);
+    g = await lectico.glossary.patch(agent.id, { auto_process: false });
+    assert.equal(g.auto_process, false);
+  });
+
+  test("training.createModule + createLesson + listModules works on training agent", async () => {
+    const agent = await lectico.agents.create({ type: "training", name: `Training ${RUN_SUFFIX}` });
+    const mod = await lectico.training.createModule(agent.id, { title: "Intro", description: "First" });
+    assert.equal(mod.module_number, 1);
+    const lesson = await lectico.training.createLesson(agent.id, mod.module_number, { title: "Welcome" });
+    assert.ok(lesson.lesson_number >= 1);
+    const modules = await lectico.training.listModules(agent.id);
+    assert.ok(modules.length >= 1);
+  });
+
+  test("training endpoints reject non-training agent", async () => {
+    const agent = await lectico.agents.create({ type: "support", name: `Sup ${RUN_SUFFIX}` });
+    await assert.rejects(() => lectico.training.createModule(agent.id, { title: "Should fail" }));
+  });
+
+  test("files.confirm flips status to uploaded", async () => {
+    // Use a tiny in-memory PDF placeholder — we are not testing B2 upload here,
+    // just the confirm endpoint shape.
+    const file = await lectico.files.create({
+      filename: "tiny.pdf",
+      content_type: "application/pdf",
+      size_bytes: 100,
+    });
+    // Skip the actual PUT (would need real bytes). Confirm marks as uploaded
+    // optimistically. After a real client PUT the same call applies.
+    const confirmed = await lectico.files.confirm(file.id);
+    assert.equal(confirmed.status, "uploaded");
+    await lectico.files.delete(file.id).catch(() => {});
+  });
+
   after(async () => {
     if (!workspaceId) return;
     const opts: RequestInit = {
@@ -155,6 +224,15 @@ describe("@lectico/api E2E (real Cloud Run)", () => {
     };
     await fetch(`${SUPABASE_URL}/rest/v1/webhook_subscriptions?workspace_id=eq.${workspaceId}`, opts);
     await fetch(`${SUPABASE_URL}/rest/v1/api_keys?workspace_id=eq.${workspaceId}`, opts);
+    await fetch(`${SUPABASE_URL}/rest/v1/questionnaire_questions?workspace_id=eq.${workspaceId}`, opts);
+    await fetch(`${SUPABASE_URL}/rest/v1/questionnaire_categories?workspace_id=eq.${workspaceId}`, opts);
+    await fetch(`${SUPABASE_URL}/rest/v1/questionnaires?workspace_id=eq.${workspaceId}`, opts);
+    await fetch(`${SUPABASE_URL}/rest/v1/knowledge_chunks?workspace_id=eq.${workspaceId}`, opts);
+    await fetch(`${SUPABASE_URL}/rest/v1/knowledge_sources?workspace_id=eq.${workspaceId}`, opts);
+    await fetch(`${SUPABASE_URL}/rest/v1/lesson_sources?workspace_id=eq.${workspaceId}`, opts);
+    await fetch(`${SUPABASE_URL}/rest/v1/course_structure?workspace_id=eq.${workspaceId}`, opts);
+    await fetch(`${SUPABASE_URL}/rest/v1/course_glossary?workspace_id=eq.${workspaceId}`, opts);
+    await fetch(`${SUPABASE_URL}/rest/v1/files?workspace_id=eq.${workspaceId}`, opts);
     await fetch(`${SUPABASE_URL}/rest/v1/tutors?workspace_id=eq.${workspaceId}`, opts);
     await fetch(`${SUPABASE_URL}/rest/v1/courses?workspace_id=eq.${workspaceId}`, opts);
     await fetch(`${SUPABASE_URL}/rest/v1/workspace_subscriptions?workspace_id=eq.${workspaceId}`, opts);
