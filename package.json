@@ -1,0 +1,60 @@
+{
+  "name": "@lectico/api",
+  "version": "0.1.0",
+  "description": "Official Node.js SDK for the Lectico API — create AI assistants trained on your content, manage conversations, capture leads, receive webhooks.",
+  "type": "module",
+  "main": "./dist/index.js",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./webhooks": {
+      "types": "./dist/webhooks.d.ts",
+      "import": "./dist/webhooks.js"
+    }
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "typecheck": "tsc --noEmit",
+    "test": "node --test --import tsx tests/unit/*.test.ts",
+    "test:e2e": "node --test --import tsx --env-file=.env.local tests/e2e/sdk.e2e.test.ts",
+    "prepublishOnly": "npm run build"
+  },
+  "keywords": [
+    "lectico",
+    "api",
+    "sdk",
+    "ai",
+    "assistant",
+    "chatbot",
+    "rag",
+    "webhooks"
+  ],
+  "author": "Lectico",
+  "license": "MIT",
+  "homepage": "https://docs.lectico.com/api",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/areacacao/lectico-sdk-node.git"
+  },
+  "bugs": {
+    "url": "https://github.com/areacacao/lectico-sdk-node/issues"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "@types/node": "^20.17.10",
+    "tsx": "^4.19.2",
+    "typescript": "^5.7.2"
+  }
+}
