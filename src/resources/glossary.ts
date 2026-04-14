@@ -2,9 +2,9 @@ import type { HttpClient, RequestOptions } from "../client.js";
 import type { Glossary, GlossaryPutInput, GlossaryPatchInput, ApiResponse } from "../types.js";
 
 /**
- * REQ-092.6 — Glossary per agent. Injected as `prompt` to AssemblyAI to
- * improve transcription quality for technical vocabulary (product names,
- * jargon, brand names).
+ * REQ-092.6 — Glossary per agent. Injected as `prompt` to the speech-to-text
+ * pipeline to improve transcription quality for technical vocabulary (product
+ * names, jargon, brand names).
  */
 export class GlossaryResource {
   constructor(private readonly client: HttpClient) {}
